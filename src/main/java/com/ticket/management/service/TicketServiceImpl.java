@@ -19,13 +19,6 @@ public class TicketServiceImpl implements TicketService{
 	
 	@Override
 	@Transactional
-	public List<Ticket> findAll(Ticket ticket) {
-		
-		return ticketDAO.findAll(ticket);
-	}
-
-	@Override
-	@Transactional
 	public void postTicket(Ticket ticket) {
 		ticketDAO.postTicket(ticket);
 		
