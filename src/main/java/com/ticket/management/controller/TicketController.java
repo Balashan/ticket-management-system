@@ -1,10 +1,15 @@
 package com.ticket.management.controller;
 
 
-import java.util.Scanner;
+import java.math.BigInteger;
+import java.util.Map;
 
+import org.apache.tomcat.util.json.JSONParser;
+import org.apache.tomcat.util.json.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,8 +20,8 @@ import com.ticket.management.service.TicketService;
 
 import io.swagger.annotations.ApiOperation;
 
-//import io.swagger.annotations.ApiOperation;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/ticket-management-system")
 public class TicketController {
@@ -25,35 +30,28 @@ public class TicketController {
 	private TicketService ticketService;
 
     @ApiOperation("This is the hello world api")
-    @GetMapping("/api/ticket/")
-    public Ticket hello() {
-    	System.out.println("Enter the Description........");
-    	Scanner scanner = new Scanner(System.in);
+    @PostMapping("/api/ticket/")
+    public String hello( @RequestBody String param) throws ParseException {
+    	JSONParser parser = new JSONParser(param);
+    	Map<String,Object> parsedMap = (Map<String, Object>)parser.parse();
+    	Map<String,Object> map = (Map<String, Object>)parsedMap.get("param");
     	Ticket ticket = new Ticket();
-    	ticket.setCreatedBy("balamurugan");
-    	ticket.setDescription(scanner.nextLine());
-    	ticket.setSeverity(1);
-    	System.out.println("Enter the Status you want COMPLETED OR CANCELLED.......");
-    	String status = scanner.nextLine();
-    	if(!status.equals("")) {
-    		if(status.equals("COMPLETED")) {
-    			ticket.setStatus(Status.valueOf(status));
-    		}else {
-    			System.out.println("Enter the Cancelled Reason OTHERS OR ENDUSER");
-    			String cancelledReason = scanner.nextLine();
-    			if(!cancelledReason.equals("")) {
-    				ticket.setCancelled(Cancelled.valueOf(cancelledReason));
-    			}else {
-    				ticket.setCancelled(null);
-    			}
-    		}
-    	}else {
-    		ticket.setStatus(null);
+    	ticket.setCreatedBy((String) map.get("createdBy"));
+    	ticket.setDescription((String) map.get("description"));
+    	ticket.setSeverity(((BigInteger) map.get("severity")).intValue());
+    	String status = (String)map.get("status")!=null? (String)map.get("status"): null;
+    	if(status!=null) {
+    		ticket.setStatus(Status.valueOf(status));
     	}
-    	ticket.setCancelledOtherDescription("Nothing");
-    	ticket.setComments("check");
+    	String cancelledReson = (String)map.get("cancelledReason")!=null? (String)map.get("cancelledReason"): null;
+    	if(cancelledReson!=null) {
+    		ticket.setCancelled(Cancelled.valueOf(cancelledReson));
+    	}
+    	Object cancelledOtherDescription = map.get("cancelledDescription")!=null? map.get("cancelledDescription"):null ;
+    	ticket.setCancelledOtherDescription((String) cancelledOtherDescription);
+    	ticket.setComments((String) map.get("comments"));
     	ticketService.postTicket(ticket);
-    	return ticket;
+    	return "success";
     }
     
 }
